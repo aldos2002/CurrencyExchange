@@ -15,8 +15,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class HelloApp {
-    private static final ExchangeService exchangeService = new ExchangeService();
+    private static final ExchangeService EXCHANGE_SERVICE = new ExchangeService();
     private static final Logger LOG = Logger.getLogger(HelloApp.class);
+    private static final String USER_1 = "User1";
+    private static final String USER_2 = "User2";
+    private static ExecutorService executorService =  Executors.newCachedThreadPool();
     private static int counter = 1;
 
     public static void main(String[] args) throws InterruptedException {
@@ -25,7 +28,7 @@ public class HelloApp {
         while (!exit) {
             System.out.println("Run cmd (test/reset/diag/quit):");
             String mode = scanner.nextLine();
-            Commands cmd = Commands.valueOf(mode);
+            Commands cmd = Commands.valueOf(mode.toUpperCase());
             switch (cmd) {
                 case TEST:
                     runTests();
@@ -40,9 +43,9 @@ public class HelloApp {
                     System.out.println("User chosen: " + input);
                     System.out.println("Input exchange values");
 
-                    System.out.println("Input From curreny(USD, EUR, KZT, RUB): ");
+                    System.out.println("Input From curreny(USD, EUR, KZT, RUBLE): ");
                     Currency fromCurrency = Currency.valueOf(scanner.nextLine());
-                    System.out.println("Input To curreny (USD, EUR, KZT, RUB): ");
+                    System.out.println("Input To curreny (USD, EUR, KZT, RUBLE): ");
                     Currency toCurrency = Currency.valueOf(scanner.nextLine());
                     System.out.println("Input currency ammount: ");
                     BigDecimal amount = scanner.nextBigDecimal();
@@ -51,6 +54,7 @@ public class HelloApp {
                     break;
                 case QUIT:
                     exit = true;
+                    executorService.shutdown();
                     break;
                 default:
                     System.out.println("Incorrect cmd.");
@@ -59,24 +63,24 @@ public class HelloApp {
         }
     }
 
-    public static void runTests() throws InterruptedException {
-        exchange("User1", Currency.USD, Currency.EUR, new BigDecimal(10));
-        exchange("User1", Currency.KZT, Currency.RUBLE, new BigDecimal(1000));
+    private static void runTests() throws InterruptedException {
+        exchange(USER_1, Currency.USD, Currency.EUR, new BigDecimal(10));
+        exchange(USER_1, Currency.KZT, Currency.RUBLE, new BigDecimal(1000));
 
-        exchange("User2", Currency.EUR, Currency.USD, new BigDecimal(10));
+        exchange(USER_2, Currency.EUR, Currency.USD, new BigDecimal(10));
 
-        exchange("User1", Currency.USD, Currency.EUR, new BigDecimal(20));
-        exchange("User1", Currency.KZT, Currency.RUBLE, new BigDecimal(500));
+        exchange(USER_1, Currency.USD, Currency.EUR, new BigDecimal(20));
+        exchange(USER_1, Currency.KZT, Currency.RUBLE, new BigDecimal(500));
 
-        exchange("User2", Currency.RUBLE, Currency.KZT, new BigDecimal(2000));
-        exchange("User2", Currency.EUR, Currency.USD, new BigDecimal(50));
-        exchange("User2", Currency.RUBLE, Currency.KZT, new BigDecimal(1000));
+        exchange(USER_2, Currency.RUBLE, Currency.KZT, new BigDecimal(2000));
+        exchange(USER_2, Currency.EUR, Currency.USD, new BigDecimal(50));
+        exchange(USER_2, Currency.RUBLE, Currency.KZT, new BigDecimal(1000));
 
-        exchange("User1", Currency.KZT, Currency.USD, new BigDecimal(3500));
-        exchange("User1", Currency.RUBLE, Currency.EUR, new BigDecimal(780));
+        exchange(USER_1, Currency.KZT, Currency.USD, new BigDecimal(3500));
+        exchange(USER_1, Currency.RUBLE, Currency.EUR, new BigDecimal(780));
 
-        exchange("User2", Currency.EUR, Currency.RUBLE, new BigDecimal(10));
-        exchange("User2", Currency.USD, Currency.KZT, new BigDecimal(10));
+        exchange(USER_2, Currency.EUR, Currency.RUBLE, new BigDecimal(10));
+        exchange(USER_2, Currency.USD, Currency.KZT, new BigDecimal(10));
 
         Thread.sleep(5000L);
         if(Utils.checkUsers()){
@@ -86,21 +90,19 @@ public class HelloApp {
         }
     }
 
-    public static void exchange(final String user, final Currency fromCurrency, final Currency toCurrency, final BigDecimal amount) {
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private static void exchange(final String user, final Currency fromCurrency, final Currency toCurrency, final BigDecimal amount) {
         final int threadCounter = counter++;
-        executorService.execute(new Runnable() {
+        executorService.submit(new Runnable() {
             @Override
             public void run() {
                 LOG.debug("Thread "+threadCounter+" started");
                 try {
-                    exchangeService.convert(fromCurrency, toCurrency, amount, user);
+                    EXCHANGE_SERVICE.convert(fromCurrency, toCurrency, amount, user);
                 } catch (IOException |BusinessException e) {
                     LOG.error(e.getMessage(), e);
                 }
                 LOG.debug("Thread "+threadCounter+" finished");
             }
         });
-        executorService.shutdown();
     }
 }

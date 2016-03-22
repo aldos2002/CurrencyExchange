@@ -5,7 +5,6 @@ import com.epam.entity.UserAccount;
 import com.epam.exceptions.BusinessException;
 import org.apache.log4j.Logger;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 
 /**
@@ -15,39 +14,45 @@ import java.math.BigDecimal;
 public class Utils {
     private static final Logger LOG = Logger.getLogger(Utils.class);
 
-    private Utils(){}
+    private Utils() {
+    }
 
-    public static boolean checkUsers(){
+    public static boolean checkUsers() {
         try {
             EntityDao entityDao = new EntityDao();
             UserAccount user1 = entityDao.readUserAccount("user1");
             UserAccount user2 = entityDao.readUserAccount("user2");
+            UserAccount checkUser1 = entityDao.readUserAccount("checkUser1");
+            UserAccount checkUser2 = entityDao.readUserAccount("checkUser2");
 
-            boolean user1Correct = user1.getDollarAmount().intValue()==30 &&
-                    user1.getEuroAmount().intValue()==136 &&
-                    user1.getRubleAmount().intValue()==1520 &&
-                    user1.getKZTAmount().intValue()==10000;
-            boolean user2Correct = user2.getDollarAmount().intValue()==126 &&
-                    user2.getEuroAmount().intValue()==130 &&
-                    user2.getRubleAmount().intValue()==780 &&
-                    user2.getKZTAmount().intValue()==25500;
+            boolean user1Correct = user1.equals(checkUser1);
+            boolean user2Correct = user2.equals(checkUser2);
             return user1Correct && user2Correct;
-        }catch (IOException|BusinessException ex){
-            LOG.error(ex.getMessage(), ex);
+        } catch (BusinessException ex) {
+            LOG.error("checkUsers() threw an exception", ex);
             return false;
         }
     }
 
     public static void resetUsers() {
         try {
-            UserAccount user1 = new UserAccount("user1", new BigDecimal(50), new BigDecimal(100),
-                    new BigDecimal(2000), new BigDecimal(15000));
-            UserAccount user2 = new UserAccount("user2", new BigDecimal(70), new BigDecimal(200),
-                    new BigDecimal(3000), new BigDecimal(7000));
+            BigDecimal firstUserDollarAmount = new BigDecimal(50);
+            BigDecimal firstUserEuroAmount = new BigDecimal(100);
+            BigDecimal firstUserRubleAmount = new BigDecimal(2000);
+            BigDecimal firstUserTengeAmount = new BigDecimal(15000);
+            BigDecimal secondUserDollarAmount = new BigDecimal(70);
+            BigDecimal secondUserEuroAmount = new BigDecimal(200);
+            BigDecimal secondUserRubleAmount = new BigDecimal(3000);
+            BigDecimal secondUserTengeAmount = new BigDecimal(7000);
+
+            UserAccount user1 = new UserAccount("user1", firstUserDollarAmount, firstUserEuroAmount,
+                    firstUserRubleAmount, firstUserTengeAmount);
+            UserAccount user2 = new UserAccount("user2", secondUserDollarAmount, secondUserEuroAmount,
+                    secondUserRubleAmount, secondUserTengeAmount);
             EntityDao entityDao = new EntityDao();
             entityDao.saveUserAccount(user1);
             entityDao.saveUserAccount(user2);
-        } catch (IOException ex) {
+        } catch (BusinessException ex) {
             LOG.error(ex.getMessage(), ex);
         }
         LOG.debug("Reset was successful");

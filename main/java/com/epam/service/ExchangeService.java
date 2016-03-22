@@ -40,7 +40,7 @@ public class ExchangeService {
                 user.setRubleAmount(withdraw(user.getRubleAmount(),amount, from, userName));
                 break;
             case KZT:
-                user.setKZTAmount(withdraw(user.getKZTAmount(),amount, from, userName));
+                user.setTengeAmount(withdraw(user.getTengeAmount(),amount, from, userName));
                 break;
             default:
                 throw new IncorrectCurrencyException(from);
@@ -57,7 +57,7 @@ public class ExchangeService {
                 user.setRubleAmount(user.getRubleAmount().add(convertedAmount));
                 break;
             case KZT:
-                user.setKZTAmount(user.getKZTAmount().add(convertedAmount));
+                user.setTengeAmount(user.getTengeAmount().add(convertedAmount));
                 break;
             default:
                 throw new IncorrectCurrencyException(to);
